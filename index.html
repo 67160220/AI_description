@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สร้างคำอธิบายสินค้า (Description)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --green: #16A97A;
+        --green-dark: #0E8A63;
+        --green-tint: #E4F6EF;
+        --navy: #1E2A47;
+        --navy-dark: #16203A;
+        --ink: #1F2430;
+        --ink-soft: #5B6472;
+        --border: #E7E9EE;
+        --bg: #F5F6F8;
+        --card: #FFFFFF;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .content {
+        padding: 32px;
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .page-title {
+        font-size: 23px;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+
+    .page-sub {
+        font-size: 14px;
+        color: var(--ink-soft);
+        margin: 0 0 26px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 22px;
+        align-items: start;
+    }
+
+    .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 22px;
+    }
+
+    .card-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 18px;
+    }
+
+    label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 7px;
+    }
+
+    .field { margin-bottom: 18px; }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+        color: var(--ink);
+        background: #fff;
+        outline: none;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    input[type="text"]:focus {
+        border-color: var(--green);
+        box-shadow: 0 0 0 3px var(--green-tint);
+    }
+
+    input::placeholder { color: #A6ACB6; }
+
+    .hint { font-size: 11.5px; color: #9AA1AB; margin-top: 6px; }
+
+    .goal-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .goal-btn {
+        padding: 11px 10px;
+        border-radius: 9px;
+        border: 1.5px solid var(--border);
+        background: #fff;
+        color: var(--ink-soft);
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.3;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
+
+    .goal-btn .sub { display: block; font-weight: 400; font-size: 11px; opacity: .85; }
+
+    .goal-btn.selected {
+        border-color: var(--green);
+        background: var(--green-tint);
+        color: var(--green-dark);
+    }
+
+    .generate-btn {
+        width: 100%;
+        margin-top: 4px;
+        padding: 13px;
+        border: none;
+        border-radius: 9px;
+        background: var(--green);
+        color: #fff;
+        font-family: inherit;
+        font-size: 14.5px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: background .15s ease;
+    }
+
+    .generate-btn:hover:not(:disabled) { background: var(--green-dark); }
+
+    .generate-btn:disabled { background: #A9DCC7; cursor: not-allowed; }
+
+    .spin {
+        width: 15px; height: 15px;
+        border: 2px solid rgba(255,255,255,.5);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+        display: none;
+    }
+
+    .generate-btn.loading .spin { display: inline-block; }
+    .generate-btn.loading .spark { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Result card ---------- */
+    .result-body {
+        min-height: 220px;
+        font-size: 14px;
+        line-height: 1.75;
+        color: var(--ink);
+        white-space: pre-wrap;
+    }
+
+    .result-body.placeholder { color: #A6ACB6; font-size: 13.5px; }
+
+    .result-line { margin: 0 0 4px; }
+    .result-lead { font-weight: 600; }
+    .result-check { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; }
+    .result-check svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 3px; color: var(--green); }
+    .result-cta { display: flex; gap: 8px; align-items: flex-start; margin-top: 6px; }
+    .result-hashtags { color: var(--navy); font-weight: 500; margin-top: 16px; }
+    .result-para { margin: 0 0 12px; }
+
+    .result-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-ghost {
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        background: none;
+        color: var(--ink-soft);
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .btn-ghost:hover { color: var(--ink); }
+    .btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-dark {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        background: var(--navy);
+        color: #fff;
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s ease;
+    }
+    .btn-dark:hover:not(:disabled) { background: var(--navy-dark); }
+    .btn-dark:disabled { opacity: .4; cursor: not-allowed; }
+
+    @media (max-width: 920px) {
+        .content { padding: 20px; }
+        .grid { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<div class="content">
+    <h1 class="page-title">สร้างคำอธิบายสินค้า (Description)</h1>
+    <p class="page-sub">เปลี่ยนสเปกสินค้าธรรมดา ให้เป็นคำอธิบายที่น่าดึงดูดและถูกต้องตามหลัก SEO</p>
+
+    <div class="grid">
+        <!-- ---- Form card ---- -->
+        <section class="card">
+            <h2 class="card-title">ข้อมูลสำหรับสร้างเนื้อหา</h2>
+
+            <div class="field">
+                <label for="name">ชื่อสินค้า</label>
+                <input type="text" id="name" maxlength="200" placeholder="เช่น กระเป๋าหนังสะพายข้าง">
+            </div>
+
+            <div class="field">
+                <label for="keywords">คีย์เวิร์ด (SEO Keywords)</label>
+                <input type="text" id="keywords" maxlength="300" placeholder="เช่น กระเป๋าหนังแท้, มินิมอล, จุของได้เยอะ">
+            </div>
+
+            <div class="field">
+                <label>เป้าหมายของข้อความ</label>
+                <div class="goal-group">
+                    <button type="button" class="goal-btn selected" data-goal="social" onclick="selectGoal('social')">
+                        โซเชียลมีเดีย<span class="sub">(สั้น/กระชับ)</span>
+                    </button>
+                    <button type="button" class="goal-btn" data-goal="website" onclick="selectGoal('website')">
+                        เว็บไซต์<span class="sub">(ละเอียด/ทางการ)</span>
+                    </button>
+                </div>
+            </div>
+
+            <button class="generate-btn" id="genBtn" onclick="generateContent()">
+                <span class="spin"></span>
+                <svg class="spark" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2L14.2 9.2L21 12L14.2 14.8L12 22L9.8 14.8L3 12L9.8 9.2L12 2Z"/></svg>
+                <span id="genLabel">Gen เนื้อหาด้วย AI</span>
+            </button>
+        </section>
+
+        <!-- ---- Result card ---- -->
+        <section class="card">
+            <h2 class="card-title">ผลลัพธ์จาก AI</h2>
+            <div class="result-body placeholder" id="result">ยังไม่มีข้อมูล กรอกฟอร์มด้านซ้ายแล้วกดปุ่ม "Gen เนื้อหาด้วย AI" เพื่อสร้างคำอธิบายสินค้า...</div>
+
+            <div class="result-actions">
+                <button class="btn-ghost" id="regenBtn" onclick="generateContent()" disabled>สร้างใหม่</button>
+                <button class="btn-dark" id="copyBtn" onclick="copyResult()" disabled>คัดลอกข้อความ</button>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // Config — แก้ตรงนี้ที่เดียวเวลาย้าย environment (dev/staging/prod)
+    // API_KEY นี้เป็นค่าเดียวกับที่ตั้งใน .env ฝั่ง server (X-API-Key)
+    // หมายเหตุ: นี่คือ demo แบบ static HTML — ใน production จริงไม่ควรฝัง API key
+    // ไว้ใน frontend ที่รันบน browser ตรงๆ ควรมี backend ของตัวเองเป็นตัวกลาง
+    // เก็บ key แล้วค่อยเรียกไปที่ AI service อีกที
+    // ==========================================
+    const CONFIG = {
+        API_BASE_URL: "http://localhost:8000",
+        API_KEY: "changeme-generate-a-real-secret", // ให้ตรงกับ .env ฝั่ง server
+    };
+
+    let selectedGoal = "social";
+    let lastCaption = "";
+
+    function selectGoal(goal) {
+        selectedGoal = goal;
+        document.querySelectorAll(".goal-btn").forEach(btn => {
+            btn.classList.toggle("selected", btn.dataset.goal === goal);
+        });
+    }
+
+    // แปลงข้อความดิบจาก AI ให้เป็นบล็อกที่จัดหน้าสวยงามตามโครงสร้าง (✨ / ✅ / 👉 / #แฮชแท็ก)
+    function renderCaption(text) {
+        const lines = text.split("\n");
+        let html = "";
+        for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line) { html += "<div style='height:8px'></div>"; continue; }
+
+            if (line.startsWith("✨")) {
+                html += `<p class="result-line result-lead">${escapeHtml(line)}</p>`;
+            } else if (line.startsWith("✅")) {
+                html += `<div class="result-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12L9 17L20 6"/></svg><span>${escapeHtml(line.replace("✅", "").trim())}</span></div>`;
+            } else if (line.startsWith("👉")) {
+                html += `<div class="result-cta"><span>${escapeHtml(line)}</span></div>`;
+            } else if (line.startsWith("#")) {
+                html += `<p class="result-hashtags">${escapeHtml(line)}</p>`;
+            } else {
+                html += `<p class="result-line result-para">${escapeHtml(line)}</p>`;
+            }
+        }
+        return html;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function setLoadingState(isLoading) {
+        const genBtn = document.getElementById("genBtn");
+        const genLabel = document.getElementById("genLabel");
+        const regenBtn = document.getElementById("regenBtn");
+        const copyBtn = document.getElementById("copyBtn");
+
+        genBtn.disabled = isLoading;
+        genBtn.classList.toggle("loading", isLoading);
+        genLabel.textContent = isLoading ? "กำลัง Gen เนื้อหา..." : "Gen เนื้อหาด้วย AI";
+        if (isLoading) {
+            regenBtn.disabled = true;
+            copyBtn.disabled = true;
+        }
+    }
+
+    async function generateContent() {
+        const name = document.getElementById("name").value.trim();
+        const keywords = document.getElementById("keywords").value.trim();
+        const resultEl = document.getElementById("result");
+
+        if (!name) {
+            alert("กรุณากรอกชื่อสินค้าก่อนนะครับ!");
+            return;
+        }
+
+        setLoadingState(true);
+        resultEl.classList.add("placeholder");
+        resultEl.textContent = "⏳ กำลังให้ AI เรียบเรียงคำอธิบายสินค้า รอสักครู่...";
+
+        const formData = new FormData();
+        formData.append("product_name", name);
+        formData.append("keywords", keywords);
+        formData.append("goal", selectedGoal);
+
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/api/generate-caption`, {
+                method: "POST",
+                headers: { "X-API-Key": CONFIG.API_KEY },
+                body: formData,
+            });
+
+            // server ส่ง error message ที่ปลอดภัย (ไม่ leak internal detail) กลับมาแล้ว
+            // จึงแสดงตรงๆ ให้ผู้ใช้ได้เลย
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                lastCaption = data.caption;
+                resultEl.classList.remove("placeholder");
+                resultEl.innerHTML = renderCaption(data.caption);
+                document.getElementById("regenBtn").disabled = false;
+                document.getElementById("copyBtn").disabled = false;
+            } else if (response.status === 429) {
+                resultEl.classList.add("placeholder");
+                resultEl.textContent = "⏳ ขอ AI ถี่เกินไป กรุณารอสักครู่แล้วลองใหม่";
+            } else if (response.status === 401) {
+                resultEl.classList.add("placeholder");
+                resultEl.textContent = "❌ ยืนยันตัวตนไม่ผ่าน กรุณาตรวจสอบ API key";
+            } else {
+                resultEl.classList.add("placeholder");
+                resultEl.textContent = "❌ " + (data.detail || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+            }
+        } catch (err) {
+            resultEl.classList.add("placeholder");
+            resultEl.textContent = "❌ เชื่อมต่อ API ไม่สำเร็จ อย่าลืมรันไฟล์ app.py ไว้ที่พอร์ต 8000 นะครับ";
+        } finally {
+            setLoadingState(false);
+        }
+    }
+
+    function copyResult() {
+        if (!lastCaption) return;
+        navigator.clipboard.writeText(lastCaption).then(() => {
+            const copyBtn = document.getElementById("copyBtn");
+            const original = copyBtn.textContent;
+            copyBtn.textContent = "คัดลอกแล้ว ✓";
+            setTimeout(() => { copyBtn.textContent = original; }, 1500);
+        });
+    }
+</script>
+
+</body>
+</html>
